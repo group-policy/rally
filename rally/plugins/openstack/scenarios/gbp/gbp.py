@@ -10,6 +10,21 @@ class GBPTests(utils.GBPScenario):
         action_name = rutils.generate_random_name(prefix="rally_action_allow_")
         self._create_policy_action(name=action_name, type=action_type)
         
+    @base.scenario(context={"cleanup": ["grouppolicy"]})
+    def create_and_update_policy_action(self, action_type="allow"):
+        action_name = rutils.generate_random_name(prefix="rally_action_allow_")
+        self._create_policy_action(name=action_name, type=action_type)
+        # Create a new action name and update
+        action_name1 = rutils.generate_random_name(prefix="rally_action_allow_")
+        self._update_policy_action(name=action_name, new_name=action_name1)
+    
+    @base.scenario(context={"cleanup": ["grouppolicy"]})
+    def create_and_show_policy_action(self, action_type="allow"):
+        action_name = rutils.generate_random_name(prefix="rally_action_allow_")
+        self._create_policy_action(name=action_name, type=action_type)
+        self._show_policy_action(action_name, action_type)
+    
+        
     @base.scenario()
     def create_and_delete_policy_action(self, action_type="allow"):
         action_name = rutils.generate_random_name(prefix="rally_action_allow_")
@@ -23,6 +38,29 @@ class GBPTests(utils.GBPScenario):
         classifier_name = rutils.generate_random_name(prefix="rally_classifier_")
         self._create_policy_classifier(classifier_name, classifier_args['protocol'], classifier_args['port_range'],
                                       classifier_args['direction'])
+    
+    
+    @base.scenario(context={"cleanup": ["grouppolicy"]})
+    def create_and_show_policy_classifier(self, classifier_args={}):
+        action_name = rutils.generate_random_name(prefix="rally_action_allow_")
+        self._create_policy_action(name=action_name)
+        classifier_name = rutils.generate_random_name(prefix="rally_classifier_")
+        self._create_policy_classifier(classifier_name, classifier_args['protocol'], classifier_args['port_range'],
+                                      classifier_args['direction'])
+        self._show_policy_classifier(classifier_name, classifier_args['protocol'],
+                                     classifier_args['port_range'], classifier_args['direction'])
+    
+    @base.scenario(context={"cleanup": ["grouppolicy"]})
+    def create_and_update_policy_classifier(self, classifier_args={}):
+        action_name = rutils.generate_random_name(prefix="rally_action_allow_")
+        self._create_policy_action(name=action_name)
+        classifier_name = rutils.generate_random_name(prefix="rally_classifier_")
+        self._create_policy_classifier(classifier_name, classifier_args['protocol'], classifier_args['port_range'],
+                                      classifier_args['direction'])
+        classifier_name1 = rutils.generate_random_name(prefix="rally_classifier_")
+        self._update_policy_classifier(classifier_name, classifier_name1,
+                                       "tcp", "5001", "in")
+    
 
     @base.scenario()
     def create_and_delete_policy_classifier(self, classifier_args={}):
