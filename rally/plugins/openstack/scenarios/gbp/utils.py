@@ -24,7 +24,31 @@ class GBPScenario(base.Scenario):
 			}
 		}
 		self.clients("grouppolicy").create_policy_action(body)
-
+	
+	@base.atomic_action_timer("gbp.update_policy_action")
+	def _update_policy_action(self, name="allow", new_name="allow"):
+		body = {
+			"policy_action": {
+				"name": new_name
+			}
+		}
+		policy_id = self._find_policy_actions(name)
+		if policy_id:
+			self.clients("grouppolicy").update_policy_action(policy_id, body)
+			return
+		print "Policy action not found %s" %(name)
+		return
+	
+	@base.atomic_action_timer("gbp.show_policy_action")
+	def _show_policy_action(self, name, type):
+		policy_id = self._find_policy_actions(name)
+		action = self.clients("grouppolicy").show_policy_action(policy_id)
+		if action['policy_action']['action_type'] != type:
+			print "Show policy action %s failed" %(name)
+		if action['policy_action']['name'] != name:
+			print "Show policy action %s failed" %(name)
+			
+	
 	@base.atomic_action_timer("gbp.delete_policy_action")
 	def _delete_policy_action(self, name="allow"):
 		"""
@@ -62,6 +86,29 @@ class GBPScenario(base.Scenario):
 			}
 		}
 		self.clients("grouppolicy").create_policy_classifier(body)
+	
+	@base.atomic_action_timer("gbp.show_policy_classifier")
+	def _show_policy_classifier(self, name, protocol , port_range, direction):
+		classifier_id = self._find_policy_classifier(name)
+		classifier = self.clients("grouppolicy").show_policy_classifier(classifier_id)
+		if classifier['policy_classifier']['name'] != name or classifier['policy_classifier']['protocol'] != protocol \
+		or classifier['policy_classifier']['port_range'] != port_range or  \
+		classifier['policy_classifier']['direction'] != direction:
+			print "Policy classifier %s not found" %(name)
+	
+	@base.atomic_action_timer("gbp.update_policy_classifier")
+	def _update_policy_classifier(self, name, newname, protocol, port_range, direction):
+		classifier_id = self._find_policy_classifier(name)
+		body = {
+			"policy_classifier": {
+				"name": newname,
+				"protocol": protocol,
+				"port_range": port_range,
+				"direction": direction
+			}
+		}
+		self.clients("grouppolicy").update_policy_classifier(classifier_id, body)
+	
 
 	@base.atomic_action_timer("gbp.delete_policy_classifier")
 	def _delete_policy_classifier(self, name):
