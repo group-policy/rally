@@ -141,6 +141,26 @@ class GBPScenario(base.Scenario):
 			}
 		}
 		self.clients("grouppolicy").create_policy_rule(body)
+		
+	@base.atomic_action_timer("gbp.show_policy_rule")
+	def _show_policy_rule(self, name):
+		rule_id = self._find_policy_rule(name)
+		rule = self.clients("grouppolicy").show_policy_rule(rule_id)
+		if rule['policy_rule']['name'] != name:
+			print "Policy rule %s not found" %(name)
+	
+	@base.atomic_action_timer("gbp.update_policy_rule")
+	def _update_policy_rule(self, name, action_name=None, classifier_name=None):
+		action_id = self._find_policy_actions(action_name)
+		classifier_id = self._find_policy_classifier(classifier_name)
+		rule_id = self._find_policy_rule(name)
+		body = {
+			"policy_rule" : {
+				"policy_actions": [action_id],
+				"policy_classifier_id": classifier_id
+			}
+		}
+		self.clients("grouppolicy").update_policy_rule(rule_id, body)
 
 	def _find_policy_rule(self, name):
 		"""
@@ -178,6 +198,29 @@ class GBPScenario(base.Scenario):
 		}
 		self.clients("grouppolicy").create_policy_rule_set(body)
 	
+	@base.atomic_action_timer("gbp.show_policy_rule_set")
+	def _show_policy_rule_set(self, rule_name):
+		ruleset_id = self._find_policy_rule_set(rule_name)
+		ruleset = self.clients("grouppolicy").show_policy_rule_set(ruleset_id)
+		if ruleset['policy_rule_set']['name'] != rule_name:
+			print "Rule set %s not found" %(rule_name)
+	
+	@base.atomic_action_timer("gbp.update_policy_rule_set")
+	def _update_policy_rule_set(self, ruleset_name, rules_list):
+		ruleset_id = self._find_policy_rule_set(ruleset_name)
+		ruleid_list =[]
+		for rule in rules_list:
+			ruleid_list.append(self._find_policy_rule(rule))
+		
+		# Now update the policy rule set
+		body = {
+			"policy_rule_set": {
+				"policy_rules": ruleid_list
+			}
+		}
+		self.clients("grouppolicy").update_policy_rule_set(ruleset_id, body)
+	
+
 	def _find_policy_rule_set(self, name):
 		"""
 		Find a policy rule set given its name
