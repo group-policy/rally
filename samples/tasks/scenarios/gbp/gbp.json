@@ -141,7 +141,95 @@
             }
         }
     ],
+    "GBPTests.create_and_show_policy_rule": [
+        {
+            "args": {
+                "classifier_args": {
+                    "protocol": "tcp",
+                    "port_range": "80",
+                    "direction": "in"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 1,
+                "concurrency": 1  
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+            }
+        }
+    ],
+    "GBPTests.create_and_update_policy_rule": [
+        {
+            "args": {
+                "classifier_args": {
+                    "protocol": "tcp",
+                    "port_range": "80",
+                    "direction": "in"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 1,
+                "concurrency": 1  
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+            }
+        }
+    ],
     "GBPTests.create_policy_rule_set": [
+        {
+            "args": {
+                "classifier_args": {
+                    "protocol": "tcp",
+                    "port_range": "80",
+                    "direction": "in"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 1,
+                "concurrency": 1  
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+            }
+        }
+    ],
+    "GBPTests.create_and_show_policy_rule_set": [
+        {
+            "args": {
+                "classifier_args": {
+                    "protocol": "tcp",
+                    "port_range": "80",
+                    "direction": "in"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 1,
+                "concurrency": 1  
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+            }
+        }
+    ],
+    "GBPTests.create_and_update_policy_rule_set": [
         {
             "args": {
                 "classifier_args": {
