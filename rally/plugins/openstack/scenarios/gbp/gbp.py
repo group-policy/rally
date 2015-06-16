@@ -84,6 +84,40 @@ class GBPTests(utils.GBPScenario):
         rule_name = rutils.generate_random_name(prefix="rally_rule_web_policy_")
         self._create_policy_rule(rule_name, classifier_name, action_name)
     
+    @base.scenario(context={"cleanup": ["grouppolicy"]})
+    def create_and_show_policy_rule(self, classifier_args={}):
+        action_name = rutils.generate_random_name(prefix="rally_action_allow_")
+        self._create_policy_action(name=action_name)
+        # Create a policy classifier
+        classifier_name = rutils.generate_random_name(prefix="rally_classifier_web_traffic_")
+        self._create_policy_classifier(classifier_name,classifier_args['protocol'], classifier_args['port_range'],
+                                       classifier_args['direction'])
+        # Now create a policy rule
+        rule_name = rutils.generate_random_name(prefix="rally_rule_web_policy_")
+        self._create_policy_rule(rule_name, classifier_name, action_name)
+        self._show_policy_rule(rule_name)
+    
+    @base.scenario(context={"cleanup": ["grouppolicy"]})
+    def create_and_update_policy_rule(self, classifier_args={}):
+        action_name = rutils.generate_random_name(prefix="rally_action_allow_")
+        self._create_policy_action(name=action_name)
+        # Create a policy classifier
+        classifier_name = rutils.generate_random_name(prefix="rally_classifier_web_traffic_")
+        self._create_policy_classifier(classifier_name,classifier_args['protocol'], classifier_args['port_range'],
+                                       classifier_args['direction'])
+        # Now create a policy rule
+        rule_name = rutils.generate_random_name(prefix="rally_rule_web_policy_")
+        self._create_policy_rule(rule_name, classifier_name, action_name)
+        # Now create a new action and classifier and update
+        action_name1 = rutils.generate_random_name(prefix="rally_action_allow_")
+        self._create_policy_action(name=action_name1)
+        # Create a policy classifier
+        classifier_name1 = rutils.generate_random_name(prefix="rally_classifier_web_traffic_")
+        self._create_policy_classifier(classifier_name1,classifier_args['protocol'], classifier_args['port_range'],
+                                       classifier_args['direction'])
+        self._update_policy_rule(rule_name, action_name1, classifier_name1)
+
+    
     
     @base.scenario()
     def create_and_delete_policy_rule(self, classifier_args={}):
@@ -115,7 +149,43 @@ class GBPTests(utils.GBPScenario):
         ruleset_name = rutils.generate_random_name(prefix="rally_ruleset_web_")
         self._create_policy_rule_set(ruleset_name, [rule_name])
 
+    @base.scenario(context={"cleanup": ["grouppolicy"]})
+    def create_and_show_policy_rule_set(self, classifier_args={}):
+        action_name = rutils.generate_random_name(prefix="rally_action_allow_")
+        self._create_policy_action(name=action_name)
+        # Create a policy classifier
+        classifier_name = rutils.generate_random_name(prefix="rally_classifier_web_traffic_")
+        self._create_policy_classifier(classifier_name,classifier_args['protocol'],
+                                       classifier_args['port_range'], classifier_args['direction'])
+        # Now create a policy rule
+        rule_name = rutils.generate_random_name(prefix="rally_rule_web_policy_")
+        self._create_policy_rule(rule_name, classifier_name, action_name)
+        # Now create a policy rule set
+        ruleset_name = rutils.generate_random_name(prefix="rally_ruleset_web_")
+        self._create_policy_rule_set(ruleset_name, [rule_name])
+        self._show_policy_rule_set(ruleset_name)
     
+    @base.scenario(context={"cleanup": ["grouppolicy"]})
+    def create_and_update_policy_rule_set(self, classifier_args={}):
+        action_name = rutils.generate_random_name(prefix="rally_action_allow_")
+        self._create_policy_action(name=action_name)
+        # Create a policy classifier
+        classifier_name = rutils.generate_random_name(prefix="rally_classifier_web_traffic_")
+        self._create_policy_classifier(classifier_name,classifier_args['protocol'],
+                                       classifier_args['port_range'], classifier_args['direction'])
+        # Now create a policy rule
+        rule_name = rutils.generate_random_name(prefix="rally_rule_web_policy_")
+        self._create_policy_rule(rule_name, classifier_name, action_name)
+        
+        # Now create a policy rule set
+        ruleset_name = rutils.generate_random_name(prefix="rally_ruleset_web_")
+        self._create_policy_rule_set(ruleset_name, [rule_name])
+        # Now create a new rule and add it in
+        rule_name1 = rutils.generate_random_name(prefix="rally_rule_web_policy_")
+        self._create_policy_rule(rule_name1, classifier_name, action_name)
+        self._update_policy_rule_set(ruleset_name, [rule_name, rule_name1])
+    
+
     @base.scenario()
     def create_and_delete_policy_rule_set(self, classifier_args={}):
         action_name = rutils.generate_random_name(prefix="rally_action_allow_")
