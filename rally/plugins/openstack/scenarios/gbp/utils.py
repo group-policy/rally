@@ -263,6 +263,15 @@ class GBPScenario(base.Scenario):
 			time.sleep(1)
 		return None
 	
+	@base.atomic_action_timer("gbp.show_policy_target_group")
+	def _show_policy_target_group(self, name):
+		group_id = self._find_policy_target_group(name)
+		group = self.clients("grouppolicy").show_policy_target_group(group_id)
+		if group['policy_target_group']['name'] != name:
+			print "Policy target group %s not found" %(name)
+	
+	
+	
 	@base.atomic_action_timer("gbp.delete_policy_target_group")
 	def _delete_policy_target_group(self, name):
 		group_id = self._find_policy_target_group(name)
@@ -306,6 +315,25 @@ class GBPScenario(base.Scenario):
 			}
 		}
 		self.clients("grouppolicy").create_policy_target(body)
+	
+	@base.atomic_action_timer("gbp.show_policy_target")
+	def _show_policy_target(self, target_name):
+		target_id = self._find_policy_target(target_name)
+		target = self.clients("grouppolicy").show_policy_target(target_id)
+		if target['policy_target']['name'] != target_name:
+			print "Policy target %s not found" %(target_name)
+	
+	
+	@base.atomic_action_timer("gbp.update_policy_target")
+	def _update_policy_target(self, target_name, target_newname):
+		target_id = self._find_policy_target(target_name)
+		body = {
+			"policy_target": {
+				"name": target_newname
+			}
+		}
+		self.clients("grouppolicy").update_policy_target(target_id, body)
+	
 	
 	def _find_policy_target(self, name):
 		for i in range(10):
