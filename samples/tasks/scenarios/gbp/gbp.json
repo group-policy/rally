@@ -273,6 +273,28 @@
             }
         }
     ],
+    "GBPTests.create_and_show_policy_target_group": [
+        {
+            "args": {
+                "classifier_args": {
+                    "protocol": "tcp",
+                    "port_range": "80",
+                    "direction": "in"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 1,
+                "concurrency": 1  
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+            }
+        }
+    ],
     "GBPTests.create_and_update_policy_target_group": [
         {
             "args": {
@@ -296,6 +318,50 @@
         }
     ],
     "GBPTests.create_policy_target": [
+        {
+            "args": {
+                "classifier_args": {
+                    "protocol": "tcp",
+                    "port_range": "80",
+                    "direction": "in"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 1,
+                "concurrency": 1  
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+            }
+        }
+    ],
+    "GBPTests.create_and_show_policy_target": [
+        {
+            "args": {
+                "classifier_args": {
+                    "protocol": "tcp",
+                    "port_range": "80",
+                    "direction": "in"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 1,
+                "concurrency": 1  
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+            }
+        }
+    ],
+    "GBPTests.create_and_update_policy_target": [
         {
             "args": {
                 "classifier_args": {
