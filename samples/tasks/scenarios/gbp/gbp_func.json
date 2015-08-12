@@ -1,0 +1,43 @@
+{
+    "GBPTests.boot_vm": [
+        {
+            "args": {
+                "flavor" : {
+                    "name": "m1.small"
+                },
+                "image": {
+                    "name": "cirros"
+                },
+                "classifier_args": {
+                    "protocol": "tcp",
+                    "port_range": "80",
+                    "direction": "in"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 3,
+                "concurrency": 3  
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+                "quotas" : {
+                    "nova": {
+                        "instances": -1,
+                        "cores": -1,
+                        "ram": -1,
+                        "metadata_items": -1
+                    }
+                }
+            },
+            "sla": {
+                "failure_rate": {
+                    "max": 0
+                }
+            } 
+        }
+    ],
+}
