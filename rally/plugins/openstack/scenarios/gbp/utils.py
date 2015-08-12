@@ -322,6 +322,9 @@ class GBPScenario(base.Scenario):
 		target = self.clients("grouppolicy").show_policy_target(target_id)
 		if target['policy_target']['name'] != target_name:
 			print "Policy target %s not found" %(target_name)
+		port_id = target['policy_target']['port_id']
+		return port_id
+		
 	
 	
 	@base.atomic_action_timer("gbp.update_policy_target")
