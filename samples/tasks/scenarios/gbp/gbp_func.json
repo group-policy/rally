@@ -40,4 +40,40 @@
             } 
         }
     ],
+    "GBPTests.ping_and_ssh_group": [
+        {
+            "args": {
+                "flavor" : {
+                    "name": "m1.small"
+                },
+                "image": {
+                    "name": "cirros"
+                },
+            },
+            "runner": {
+                "type": "constant",
+                "times": 1,
+                "concurrency": 1 
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+                "quotas" : {
+                    "nova": {
+                        "instances": -1,
+                        "cores": -1,
+                        "ram": -1,
+                        "metadata_items": -1
+                    }
+                }
+            },
+            "sla": {
+                "failure_rate": {
+                    "max": 0
+                }
+            } 
+        }
+    ],
 }

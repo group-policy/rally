@@ -422,5 +422,84 @@ class GBPTests(nova_utils.NovaScenario, utils.GBPScenario):
         port_id = self._show_policy_target(pt_name)
         kwargs["nics"] = [{"port-id": port_id}]
         instance = self._boot_server(image, flavor, **kwargs)
+    
+    @types.set(image=types.ImageResourceType, flavor=types.FlavorResourceType)
+    @validation.image_valid_on_flavor("flavor", "image")
+    @base.scenario(context={"cleanup": ["nova", "grouppolicy"]})
+    def ping_and_ssh_group(self, image, flavor, **kwargs):
+        """
+        Scenario that has
+        1. A provider group that provides icmp and ssh bidirectional
+        2. 2 consumer groups that consumes icmp and ssh bidirectional
+        """
+        action_name = rutils.generate_random_name(prefix="rally_action_allow_")
+        self._create_policy_action(name=action_name)
+        
+        # Create a policy classifier name for icmp and ssh
+        classifier_name_icmp = rutils.generate_random_name(prefix="rally_classifier_icmp_")
+        classifier_name_ssh = rutils.generate_random_name(prefix="rally_classifier_ssh_")
+        # Create the policy classifier for ICMP
+        self._create_policy_classifier(classifier_name_icmp, "icmp", None, "bi")
+        # Create the policy classifier for SSH
+        self._create_policy_classifier(classifier_name_ssh, "tcp", "22", "bi")
+                                                          
+
+        # Now create a policy rule for ICMP
+        rule_name_icmp = rutils.generate_random_name(prefix="rally_rule_icmp_")
+        self._create_policy_rule(rule_name_icmp, classifier_name_icmp, action_name)
+        # Now create a policy rule for SSH
+        rule_name_ssh = rutils.generate_random_name(prefix="rally_rule_ssh_")
+        self._create_policy_rule(rule_name_ssh, classifier_name_ssh, action_name)
+        
+        # Now create a policy rule set for ICMP
+        ruleset_name_icmp = rutils.generate_random_name(prefix="rally_ruleset_icmp_")
+        self._create_policy_rule_set(ruleset_name_icmp, [rule_name_icmp])
+        # Create another rule set for SSH
+        ruleset_name_ssh = rutils.generate_random_name(prefix="rally_ruleset_ssh_")
+        self._create_policy_rule_set(ruleset_name_ssh, [rule_name_ssh])
+        
+        # Create a policy target group that provides ICMP and SSH
+        pt_group_name_provider = rutils.generate_random_name(prefix="rally_group_provider_")
+        self._create_policy_target_group(pt_group_name_provider)
+        # Now update the policy target group to provide ICMP and SSH
+        self._update_policy_target_group(pt_group_name_provider, provided_policy_rulesets=[ruleset_name_icmp, ruleset_name_ssh])
+        # Create another 2 policy target groups that consumes the ICMP and SSH
+        pt_group_name_consumer_1 = rutils.generate_random_name(prefix="rally_group_consumer_1_")
+        self._create_policy_target_group(pt_group_name_consumer_1)
+        self._update_policy_target_group(pt_group_name_consumer_1, consumed_policy_rulesets=[ruleset_name_icmp, ruleset_name_ssh])
+        pt_group_name_consumer_2 = rutils.generate_random_name(prefix="rally_group_consumer_2_")
+        self._create_policy_target_group(pt_group_name_consumer_2)
+        self._update_policy_target_group(pt_group_name_consumer_2, consumed_policy_rulesets=[ruleset_name_icmp, ruleset_name_ssh])
+
+        
+        # Create a policy target in the provider group
+        pt_name_provider = rutils.generate_random_name(prefix="rally_target_provider_")
+        self._create_policy_target(pt_name_provider, pt_group_name_provider)
+        port_id_provider = self._show_policy_target(pt_name_provider)
+        
+        # Create a policy target in the consumer 1 group
+        pt_name_consumer_1 = rutils.generate_random_name(prefix="rally_target_consumer_1_")
+        self._create_policy_target(pt_name_consumer_1, pt_group_name_consumer_1)
+        port_id_consumer_1 = self._show_policy_target(pt_name_consumer_1)
+        
+        # Create a policy target in the consumer 2 group
+        pt_name_consumer_2 = rutils.generate_random_name(prefix="rally_target_consumer_2_")
+        self._create_policy_target(pt_name_consumer_2, pt_group_name_consumer_2)
+        port_id_consumer_2 = self._show_policy_target(pt_name_consumer_2)
+        
+        # Create a VM in provider group
+        kwargs["nics"] = [{"port-id": port_id_provider}]
+        instance_provider = self._boot_server(image, flavor, **kwargs)
+        
+        # Create a VM in the consumer1 group
+        kwargs["nics"] = [{"port-id": port_id_consumer_1}]
+        instance_consumer_1 = self._boot_server(image, flavor, **kwargs)
+        
+        # Create a VM in the consumer 2 group
+        kwargs["nics"] = [{"port-id": port_id_consumer_2}]
+        instance_consumer_2 = self._boot_server(image, flavor, **kwargs)
+   
+        
+        
 
         
