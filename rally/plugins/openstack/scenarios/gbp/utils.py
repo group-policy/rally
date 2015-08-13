@@ -77,14 +77,23 @@ class GBPScenario(base.Scenario):
 	
 	@base.atomic_action_timer("gbp.create_policy_classifier")
 	def _create_policy_classifier(self, name, protocol, port_range, direction):
-		body = {
-			"policy_classifier": {
-				"name": name,
-				"protocol": protocol,
-				"port_range": port_range,
-				"direction": direction
+		if protocol != "icmp":
+			body = {
+					"policy_classifier": {
+					"name": name,
+					"protocol": protocol,
+					"port_range": port_range,
+					"direction": direction
+				}
 			}
-		}
+		else:
+			body = {
+					"policy_classifier": {
+					"name": name,
+					"protocol": protocol,
+					"direction": direction
+				}
+			}
 		self.clients("grouppolicy").create_policy_classifier(body)
 	
 	@base.atomic_action_timer("gbp.show_policy_classifier")
@@ -99,14 +108,23 @@ class GBPScenario(base.Scenario):
 	@base.atomic_action_timer("gbp.update_policy_classifier")
 	def _update_policy_classifier(self, name, newname, protocol, port_range, direction):
 		classifier_id = self._find_policy_classifier(name)
-		body = {
-			"policy_classifier": {
-				"name": newname,
-				"protocol": protocol,
-				"port_range": port_range,
-				"direction": direction
+		if protocol != "icmp":
+			body = {
+					"policy_classifier": {
+					"name": newname,
+					"protocol": protocol,
+					"port_range": port_range,
+					"direction": direction
+				}
 			}
-		}
+		else:
+			body = {
+					"policy_classifier": {
+					"name": newname,
+					"protocol": protocol,
+					"direction": direction
+				}
+			}
 		self.clients("grouppolicy").update_policy_classifier(classifier_id, body)
 	
 
