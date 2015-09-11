@@ -83,7 +83,13 @@ class GroupPolicyMixin(SynchronizedDeletion, base.ResourceManager):
         delete_method(self.id())
 
     def list(self):
-        resources = self._resource + "s"
+        if self._resource == "l2_policy":
+            resources = "l2_policies"
+        elif self._resource == "l3_policy":
+            resources = "l3_policies"
+        else: 
+            resources = self._resource + "s"
+     
         list_method = getattr(self._manager(), "list_%s" % resources)
 
         return filter(lambda r: r["tenant_id"] == self.tenant_uuid,
@@ -97,6 +103,16 @@ class GroupPolicyTarget(GroupPolicyMixin):
 @base.resource("grouppolicy", "policy_target_group", order=next(_grouppolicy_order),
                tenant_resource=True)
 class GroupPolicyTargetGroup(GroupPolicyMixin):
+    pass
+
+@base.resource("grouppolicy", "l2_policy", order=next(_grouppolicy_order),
+                tenant_resource=True)
+class GroupPolicyL2Policy(GroupPolicyMixin):
+    pass
+
+@base.resource("grouppolicy", "l3_policy", order=next(_grouppolicy_order),
+                tenant_resource=True)
+class GroupPolicyL3Policy(GroupPolicyMixin):
     pass
 
 @base.resource("grouppolicy", "policy_rule_set", order=next(_grouppolicy_order),

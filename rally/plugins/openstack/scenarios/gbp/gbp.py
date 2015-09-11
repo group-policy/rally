@@ -312,6 +312,36 @@ class GBPTests(nova_utils.NovaScenario, utils.GBPScenario):
         # Now create a policy target inside the group
         pt_name = rutils.generate_random_name(prefix="rally_target_web1")
         self._create_policy_target(pt_name,pt_group_name)
+        
+    @base.scenario(context={"cleanup": ["grouppolicy"]})
+    def create_policy_target_explicit(self, classifier_args={}, l3policy_args={}):
+        """
+        Create a policy target explicit workflow"""
+        action_name = rutils.generate_random_name(prefix="rally_action_allow_")
+        self._create_policy_action(name=action_name)
+        classifier_name = rutils.generate_random_name(prefix="rally_classifier_web_traffic_")
+        self._create_policy_classifier(classifier_name, classifier_args['protocol'],
+                                       classifier_args['port_range'], classifier_args['direction'])
+        # Now create a policy rule
+        rule_name = rutils.generate_random_name(prefix="rally_rule_web_policy_")
+        self._create_policy_rule(rule_name, classifier_name, action_name)
+        # Now create a policy rule set
+        ruleset_name = rutils.generate_random_name(prefix="rally_ruleset_web_")
+        self._create_policy_rule_set(ruleset_name, [rule_name])
+        # Now create a L3 Policy
+        l3policy_name = rutils.generate_random_name(prefix="rally_l3policy_")
+        self._create_l3_policy(l3policy_name, l3policy_args['ip_pool'], l3policy_args['prefix_length'])
+        # Now create a L2 Policy and map it to this L3 policy
+        l2policy_name = rutils.generate_random_name(prefix="rally_l2policy_")
+        self._create_l2_policy(l2policy_name, l3policy_name)
+        # Now create a policy target group with this L2 policy
+        pt_group_name = rutils.generate_random_name(prefix="rally_group_")
+        self._create_policy_target_group(pt_group_name, l2policy_name)
+        # Now as usual update the group to provide the rule set
+        self._update_policy_target_group(pt_group_name, provided_policy_rulesets=[ruleset_name])
+        # Now create a policy target inside the group
+        pt_name = rutils.generate_random_name(prefix="rally_target_web1")
+        self._create_policy_target(pt_name,pt_group_name)
 
     @base.scenario(context={"cleanup": ["grouppolicy"]})
     def create_and_show_policy_target(self, classifier_args={}):
