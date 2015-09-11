@@ -261,12 +261,21 @@ class GBPScenario(base.Scenario):
 		return
 	
 	@base.atomic_action_timer("gbp.create_policy_target_group")
-	def _create_policy_target_group(self, name):
-		body = {
-			"policy_target_group": {
-				"name": name
+	def _create_policy_target_group(self, name, l2policy = None):
+		if l2policy:
+			policyid = self._find_l2_policy(l2policy)
+			body = {
+				"policy_target_group": {
+					"name": name,
+					"l2_policy_id" : policyid
+				}
 			}
-		}
+		else:
+			body = {
+				"policy_target_group": {
+					"name": name
+				}
+			}
 		self.clients("grouppolicy").create_policy_target_group(body)
 		
 	def _find_policy_target_group(self, name):
@@ -334,6 +343,98 @@ class GBPScenario(base.Scenario):
 		}
 		self.clients("grouppolicy").create_policy_target(body)
 	
+	@base.atomic_action_timer("gbp.create_l3_policy")
+	def _create_l3_policy(self, name, ip_pool="192.166.0.0/16", prefix_length="24"):
+		body = {
+			"l3_policy": {
+				"subnet_prefix_length": prefix_length,
+				"name": name,
+				"ip_pool": ip_pool
+			}
+		}
+		self.clients("grouppolicy").create_l3_policy(body)
+	
+	
+		
+	def _find_l3_policy(self, name):
+		for i in range(10):
+			policies = self.clients("grouppolicy").list_l3_policies()
+			for policy in policies['l3_policies']:
+				if policy['name'] == name:
+					return policy['id']
+			time.sleep(1)
+		return None
+	
+	@base.atomic_action_timer("gbp.delete_l3_policy")
+	def _delete_l3_policy(self, name):
+		policyid = self._find_l3_policy(name)
+		if policyid:
+			self.clients("grouppolicy").delete_l3_policy(policyid)
+			return
+		print "L3 Policy %s not found" %(name)
+		return
+
+	@base.atomic_action_timer("gbp.update_l3_policy")
+	def _update_l3_policy(self, name, external_segment_name):
+		"""
+		Update the external segment associated with an L3 policy
+		"""
+		policyid = self._find_l3_policy(name)
+		segmentid = self._find_external_segment(external_segment_name)
+		body = {
+			"l3_policy": {
+				"external_segments": {
+					segmentid : [""]
+				}
+			}
+		}
+		self.clients("grouppolicy").update_l3_policy(body)
+	
+	@base.atomic_action_timer("gbp.show_l3_policy")
+	def _show_l3_policy(self, name):
+		policyid = self._find_l3_policy(name)
+		policy = self.clients("grouppolicy").show_l3_policy(policyid)
+		if policy['l3_policy']['name'] != name:
+			print "L3 Policy %s not found" %(name)
+		return policy['l3_policy']['id']
+	
+	@base.atomic_action_timer("gbp.create_l2_policy")
+	def _create_l2_policy(self, name, l3policy_name):
+		policyid = self._find_l3_policy(l3policy_name)
+		body = {
+			"l2_policy" : {
+				"l3_policy_id" : policyid,
+				"name" : name
+			}
+		}
+		self.clients("grouppolicy").create_l2_policy(body)
+	
+	def _find_l2_policy(self,name):
+		for i in range(10):
+			policies = self.clients("grouppolicy").list_l2_policies()
+			for policy in policies['l2_policies']:
+				if policy['name'] == name:
+					return policy['id']
+			time.sleep(1)
+		return None
+	
+	@base.atomic_action_timer("gbp.delete_l2_policy")
+	def _delete_l2_policy(self, name):
+		policyid = self._find_l2_policy(name)
+		if policyid:
+			self.clients("grouppolicy").delete_l2_policy(policyid)
+			return
+		print "L2 Policy %s not found" %(name)
+		return
+	
+	@base.atomic_action_timer("gbp.show_l2_policy")
+	def _show_l2_policy(self, name):
+		policyid = self._find_l2_policy(name)
+		policy = self.clients("grouppolicy").show_l2_policy(policyid)
+		if policy['l2_policy']['name'] != name:
+			print "L2 Policy %s not found" %(name)
+		return policy['l2_policy']['id']
+		
 	@base.atomic_action_timer("gbp.show_policy_target")
 	def _show_policy_target(self, target_name):
 		target_id = self._find_policy_target(target_name)
@@ -373,3 +474,110 @@ class GBPScenario(base.Scenario):
 			return
 		print "Policy target %s not found" %(name)
 		return
+
+	@base.atomic_action_timer("gbp.create_external_segment")
+	def _create_external_segment(self, name, nexthop, cidr, destination="0.0.0.0/0"):
+		body = {
+			"external_segment": {
+				"external_routes": [{"nexthop": nexthop, "destination": destination}],
+				"cidr": cidr,
+				"name": name
+			}
+		}
+		self.clients("grouppolicy").create_external_segment(body)
+	
+	def _find_external_segment(self, name):
+		for i in range(10):
+			segments = self.clients("grouppolicy").list_external_segments()
+			for segment in segments['external_segments']:
+				if segment['name'] == name:
+					return segment['id']
+			time.sleep(1)
+		return None
+	
+	@base.atomic_action_timer("gbp.delete_external_segment")
+	def _delete_external_segment(self, name):
+		segmentid = self._find_external_segment(name)
+		if segmentid:
+			self.clients("grouppolicy").delete_external_segment(segmentid)
+			return
+		print "External segment %s not found" %(name)
+		return
+			
+	
+	@base.atomic_action_timer("gbp.show_external_segment")
+	def _show_external_segment(self, name):
+		segmentid = self_find_external_segment(name)
+		segment = self.clients("grouppolicy").show_external_segment(segmentid)
+		if segment['external_segment']['name'] != name:
+			print "External segment %s not found" %(name)
+		return segment['external_segment']['id']
+	
+	
+	@base.atomic_action_timer("gbp.create_external_policy")
+	def _create_external_policy(self, name, external_segment_name):
+		segmentid = self._find_external_segment(external_segment_name)
+		body = {
+			"external_policy": {
+				"external_segments": [segmentid],
+				"name": name
+			}
+		}
+		self.clients("grouppolicy").create_external_policy(body)
+		
+	def _find_external_policy(self, name):
+		for i in range(10):
+			policies = self.clients("grouppolicy").list_external_policies()
+			for policy in policies['external_policies']:
+				if policy['name'] == name:
+					return policy['id']
+			time.sleep(1)
+		return None
+	
+	@base.atomic_action_timer("gbp.delete_external_policy")
+	def _delete_external_policy(self, name):
+		policyid = self._find_external_policy(name)
+		if policyid:
+			self.clients("grouppolicy").delete_external_policy(policyid)
+			return
+		print "External segment %s not found" %(name)
+		return
+	
+	@base.atomic_action_timer("gbp.show_external_policy")
+	def _show_external_policy(self, name):
+		policyid = self._find_external_policy(name)
+		policy = self.clients("grouppolicy").show_external_policy(policyid)
+		if policy['external_policy']['name'] == name:
+			print "External policy %s not found" %(name)
+		return policy['external_policy']['id']
+	
+	@base.atomic_action_timer("gbp.update_external_policy")
+	def _update_external_policy(self, name, consumed_policy_rulesets=None, provided_policy_rulesets=None):
+		policyid = self._find_external_policy(name)
+		consumed_dict = {}
+		provided_dict = {}
+		if consumed_policy_rulesets:
+			for ruleset in consumed_policy_rulesets:
+				id = self._find_policy_rule_set(ruleset)
+				consumed_dict[id] = "true"
+		if provided_policy_rulesets:
+			for ruleset in provided_policy_rulesets:
+				id = self._find_policy_rule_set(ruleset)
+				provided_dict[id] = "true"
+		
+		body = {
+			"policy_target_group" : {
+				"provided_policy_rule_sets" : provided_dict,
+				"consumed_policy_rule_sets" : consumed_dict
+			}
+		}
+		self.clients("grouppolicy").update_external_policy(policyid, body)
+	
+		
+	
+	
+	
+		
+		
+	
+		
