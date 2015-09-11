@@ -419,6 +419,37 @@
             }
         }
     ],
+    "GBPTests.create_policy_target_explicit": [
+        {
+            "args": {
+                "classifier_args": {
+                    "protocol": "tcp",
+                    "port_range": "80",
+                    "direction": "in"
+                },
+                "l3policy_args": {
+                    "ip_pool" : "192.166.0.0/16",
+                    "prefix_length": "24"
+                }
+            },
+            "runner": {
+                "type": "constant",
+                "times": 1,
+                "concurrency": 1  
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1
+                },
+            },
+            "sla": {
+                "failure_rate": {
+                    "max": 0
+                }
+            }
+        }
+    ],
     "GBPTests.create_and_show_policy_target": [
         {
             "args": {

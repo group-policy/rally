@@ -3,7 +3,7 @@
         {
             "args": {
                 "flavor" : {
-                    "name": "m1.small"
+                    "name": "m1.tiny"
                 },
                 "image": {
                     "name": "cirros"
@@ -44,7 +44,7 @@
         {
             "args": {
                 "flavor" : {
-                    "name": "m1.small"
+                    "name": "m1.tiny"
                 },
                 "image": {
                     "name": "cirros"
@@ -52,8 +52,8 @@
             },
             "runner": {
                 "type": "constant",
-                "times": 1,
-                "concurrency": 1 
+                "times": 2,
+                "concurrency": 2 
             },
             "context": {
                 "users": {
