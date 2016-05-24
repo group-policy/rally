@@ -1,4 +1,5 @@
-from rally.benchmark.scenarios import base
+from rally.plugins.openstack import scenario
+from rally.task import atomic
 from rally import osclients
 import os
 import time
@@ -11,11 +12,11 @@ def grouppolicy(self):
 							tenant_name=self.endpoint.tenant_name,
 							auth_url=self.endpoint.auth_url)
 
-class GBPScenario(base.Scenario):
+class GBPScenario(scenario.OpenStackScenario):
 	"""
 	Base class for GBP scenarios
 	"""
-	@base.atomic_action_timer("gbp.create_policy_action")
+	@atomic.action_timer("gbp.create_policy_action")
 	def _create_policy_action(self, name="allow", type="allow"):
 		body = {
 			"policy_action": {
@@ -25,7 +26,7 @@ class GBPScenario(base.Scenario):
 		}
 		self.clients("grouppolicy").create_policy_action(body)
 	
-	@base.atomic_action_timer("gbp.update_policy_action")
+	@atomic.action_timer("gbp.update_policy_action")
 	def _update_policy_action(self, name="allow", new_name="allow"):
 		body = {
 			"policy_action": {
@@ -39,7 +40,7 @@ class GBPScenario(base.Scenario):
 		print "Policy action not found %s" %(name)
 		return
 	
-	@base.atomic_action_timer("gbp.show_policy_action")
+	@atomic.action_timer("gbp.show_policy_action")
 	def _show_policy_action(self, name, type):
 		policy_id = self._find_policy_actions(name)
 		action = self.clients("grouppolicy").show_policy_action(policy_id)
@@ -49,7 +50,7 @@ class GBPScenario(base.Scenario):
 			print "Show policy action %s failed" %(name)
 			
 	
-	@base.atomic_action_timer("gbp.delete_policy_action")
+	@atomic.action_timer("gbp.delete_policy_action")
 	def _delete_policy_action(self, name="allow"):
 		"""
 		Delete a policy action
@@ -75,7 +76,7 @@ class GBPScenario(base.Scenario):
 			time.sleep(1)
 		return None
 	
-	@base.atomic_action_timer("gbp.create_policy_classifier")
+	@atomic.action_timer("gbp.create_policy_classifier")
 	def _create_policy_classifier(self, name, protocol, port_range, direction):
 		if protocol != "icmp":
 			body = {
@@ -96,7 +97,7 @@ class GBPScenario(base.Scenario):
 			}
 		self.clients("grouppolicy").create_policy_classifier(body)
 	
-	@base.atomic_action_timer("gbp.show_policy_classifier")
+	@atomic.action_timer("gbp.show_policy_classifier")
 	def _show_policy_classifier(self, name, protocol , port_range, direction):
 		classifier_id = self._find_policy_classifier(name)
 		classifier = self.clients("grouppolicy").show_policy_classifier(classifier_id)
@@ -105,7 +106,7 @@ class GBPScenario(base.Scenario):
 		classifier['policy_classifier']['direction'] != direction:
 			print "Policy classifier %s not found" %(name)
 	
-	@base.atomic_action_timer("gbp.update_policy_classifier")
+	@atomic.action_timer("gbp.update_policy_classifier")
 	def _update_policy_classifier(self, name, newname, protocol, port_range, direction):
 		classifier_id = self._find_policy_classifier(name)
 		if protocol != "icmp":
@@ -128,7 +129,7 @@ class GBPScenario(base.Scenario):
 		self.clients("grouppolicy").update_policy_classifier(classifier_id, body)
 	
 
-	@base.atomic_action_timer("gbp.delete_policy_classifier")
+	@atomic.action_timer("gbp.delete_policy_classifier")
 	def _delete_policy_classifier(self, name):
 		classifier_id = self._find_policy_classifier(name)
 		if classifier_id:
@@ -149,7 +150,7 @@ class GBPScenario(base.Scenario):
 			time.sleep(1)
 		return None
 
-	@base.atomic_action_timer("gbp.create_policy_rule")
+	@atomic.action_timer("gbp.create_policy_rule")
 	def _create_policy_rule(self, policy_name, classifier_name, action_name):
 		body = {
 			"policy_rule": {
@@ -160,14 +161,14 @@ class GBPScenario(base.Scenario):
 		}
 		self.clients("grouppolicy").create_policy_rule(body)
 		
-	@base.atomic_action_timer("gbp.show_policy_rule")
+	@atomic.action_timer("gbp.show_policy_rule")
 	def _show_policy_rule(self, name):
 		rule_id = self._find_policy_rule(name)
 		rule = self.clients("grouppolicy").show_policy_rule(rule_id)
 		if rule['policy_rule']['name'] != name:
 			print "Policy rule %s not found" %(name)
 	
-	@base.atomic_action_timer("gbp.update_policy_rule")
+	@atomic.action_timer("gbp.update_policy_rule")
 	def _update_policy_rule(self, name, action_name=None, classifier_name=None):
 		action_id = self._find_policy_actions(action_name)
 		classifier_id = self._find_policy_classifier(classifier_name)
@@ -192,7 +193,7 @@ class GBPScenario(base.Scenario):
 			time.sleep(1)
 		return None
 
-	@base.atomic_action_timer("gbp.delete_policy_rule")
+	@atomic.action_timer("gbp.delete_policy_rule")
 	def _delete_policy_rule(self, name):
 		policy_rule_id = self._find_policy_rule(name)
 		if policy_rule_id:
@@ -201,7 +202,7 @@ class GBPScenario(base.Scenario):
 		print "Policy rule %s not found" %(name)
 		return
 	
-	@base.atomic_action_timer("gbp.create_policy_rule_set")
+	@atomic.action_timer("gbp.create_policy_rule_set")
 	def _create_policy_rule_set(self, ruleset_name, rules_list):
 		ruleid_list = []
 		for rule in rules_list:
@@ -216,14 +217,14 @@ class GBPScenario(base.Scenario):
 		}
 		self.clients("grouppolicy").create_policy_rule_set(body)
 	
-	@base.atomic_action_timer("gbp.show_policy_rule_set")
+	@atomic.action_timer("gbp.show_policy_rule_set")
 	def _show_policy_rule_set(self, rule_name):
 		ruleset_id = self._find_policy_rule_set(rule_name)
 		ruleset = self.clients("grouppolicy").show_policy_rule_set(ruleset_id)
 		if ruleset['policy_rule_set']['name'] != rule_name:
 			print "Rule set %s not found" %(rule_name)
 	
-	@base.atomic_action_timer("gbp.update_policy_rule_set")
+	@atomic.action_timer("gbp.update_policy_rule_set")
 	def _update_policy_rule_set(self, ruleset_name, rules_list):
 		ruleset_id = self._find_policy_rule_set(ruleset_name)
 		ruleid_list =[]
@@ -251,7 +252,7 @@ class GBPScenario(base.Scenario):
 			time.sleep(1)
 		return None
 	
-	@base.atomic_action_timer("gbp.delete_policy_rule_set")
+	@atomic.action_timer("gbp.delete_policy_rule_set")
 	def _delete_policy_rule_set(self, name):
 		policy_ruleset_id = self._find_policy_rule_set(name)
 		if policy_ruleset_id:
@@ -260,7 +261,7 @@ class GBPScenario(base.Scenario):
 		print "Policy rule set %s not found" %(name)
 		return
 	
-	@base.atomic_action_timer("gbp.create_policy_target_group")
+	@atomic.action_timer("gbp.create_policy_target_group")
 	def _create_policy_target_group(self, name, l2policy = None):
 		if l2policy:
 			policyid = self._find_l2_policy(l2policy)
@@ -290,7 +291,7 @@ class GBPScenario(base.Scenario):
 			time.sleep(1)
 		return None
 	
-	@base.atomic_action_timer("gbp.show_policy_target_group")
+	@atomic.action_timer("gbp.show_policy_target_group")
 	def _show_policy_target_group(self, name):
 		group_id = self._find_policy_target_group(name)
 		group = self.clients("grouppolicy").show_policy_target_group(group_id)
@@ -299,7 +300,7 @@ class GBPScenario(base.Scenario):
 	
 	
 	
-	@base.atomic_action_timer("gbp.delete_policy_target_group")
+	@atomic.action_timer("gbp.delete_policy_target_group")
 	def _delete_policy_target_group(self, name):
 		group_id = self._find_policy_target_group(name)
 		if group_id:
@@ -308,7 +309,7 @@ class GBPScenario(base.Scenario):
 		print "Policy target group %s not found" %(name)
 		return
 	
-	@base.atomic_action_timer("gbp.update_policy_target_group")
+	@atomic.action_timer("gbp.update_policy_target_group")
 	def _update_policy_target_group(self, group_name, consumed_policy_rulesets=None, provided_policy_rulesets=None):
 		# Lookup the group id from the group name
 		group_id =  self._find_policy_target_group(group_name)
@@ -331,7 +332,7 @@ class GBPScenario(base.Scenario):
 		}
 		self.clients("grouppolicy").update_policy_target_group(group_id, body)
 	
-	@base.atomic_action_timer("gbp.create_policy_target")
+	@atomic.action_timer("gbp.create_policy_target")
 	def _create_policy_target(self, name, group_name):
 		# Lookup the group id first
 		group_id = self._find_policy_target_group(group_name)
@@ -343,7 +344,7 @@ class GBPScenario(base.Scenario):
 		}
 		self.clients("grouppolicy").create_policy_target(body)
 	
-	@base.atomic_action_timer("gbp.create_l3_policy")
+	@atomic.action_timer("gbp.create_l3_policy")
 	def _create_l3_policy(self, name, ip_pool="192.166.0.0/16", prefix_length="24"):
 		body = {
 			"l3_policy": {
@@ -365,7 +366,7 @@ class GBPScenario(base.Scenario):
 			time.sleep(1)
 		return None
 	
-	@base.atomic_action_timer("gbp.delete_l3_policy")
+	@atomic.action_timer("gbp.delete_l3_policy")
 	def _delete_l3_policy(self, name):
 		policyid = self._find_l3_policy(name)
 		if policyid:
@@ -374,7 +375,7 @@ class GBPScenario(base.Scenario):
 		print "L3 Policy %s not found" %(name)
 		return
 
-	@base.atomic_action_timer("gbp.update_l3_policy")
+	@atomic.action_timer("gbp.update_l3_policy")
 	def _update_l3_policy(self, name, external_segment_name):
 		"""
 		Update the external segment associated with an L3 policy
@@ -390,7 +391,7 @@ class GBPScenario(base.Scenario):
 		}
 		self.clients("grouppolicy").update_l3_policy(body)
 	
-	@base.atomic_action_timer("gbp.show_l3_policy")
+	@atomic.action_timer("gbp.show_l3_policy")
 	def _show_l3_policy(self, name):
 		policyid = self._find_l3_policy(name)
 		policy = self.clients("grouppolicy").show_l3_policy(policyid)
@@ -398,7 +399,7 @@ class GBPScenario(base.Scenario):
 			print "L3 Policy %s not found" %(name)
 		return policy['l3_policy']['id']
 	
-	@base.atomic_action_timer("gbp.create_l2_policy")
+	@atomic.action_timer("gbp.create_l2_policy")
 	def _create_l2_policy(self, name, l3policy_name):
 		policyid = self._find_l3_policy(l3policy_name)
 		body = {
@@ -418,7 +419,7 @@ class GBPScenario(base.Scenario):
 			time.sleep(1)
 		return None
 	
-	@base.atomic_action_timer("gbp.delete_l2_policy")
+	@atomic.action_timer("gbp.delete_l2_policy")
 	def _delete_l2_policy(self, name):
 		policyid = self._find_l2_policy(name)
 		if policyid:
@@ -427,7 +428,7 @@ class GBPScenario(base.Scenario):
 		print "L2 Policy %s not found" %(name)
 		return
 	
-	@base.atomic_action_timer("gbp.show_l2_policy")
+	@atomic.action_timer("gbp.show_l2_policy")
 	def _show_l2_policy(self, name):
 		policyid = self._find_l2_policy(name)
 		policy = self.clients("grouppolicy").show_l2_policy(policyid)
@@ -435,7 +436,7 @@ class GBPScenario(base.Scenario):
 			print "L2 Policy %s not found" %(name)
 		return policy['l2_policy']['id']
 		
-	@base.atomic_action_timer("gbp.show_policy_target")
+	@atomic.action_timer("gbp.show_policy_target")
 	def _show_policy_target(self, target_name):
 		target_id = self._find_policy_target(target_name)
 		target = self.clients("grouppolicy").show_policy_target(target_id)
@@ -446,7 +447,7 @@ class GBPScenario(base.Scenario):
 		
 	
 	
-	@base.atomic_action_timer("gbp.update_policy_target")
+	@atomic.action_timer("gbp.update_policy_target")
 	def _update_policy_target(self, target_name, target_newname):
 		target_id = self._find_policy_target(target_name)
 		body = {
@@ -466,7 +467,7 @@ class GBPScenario(base.Scenario):
 			time.sleep(1)
 		return None
 	
-	@base.atomic_action_timer("gbp.delete_policy_target")
+	@atomic.action_timer("gbp.delete_policy_target")
 	def _delete_policy_target(self, name):
 		target_id = self._find_policy_target(name)
 		if target_id:
@@ -475,7 +476,7 @@ class GBPScenario(base.Scenario):
 		print "Policy target %s not found" %(name)
 		return
 
-	@base.atomic_action_timer("gbp.create_external_segment")
+	@atomic.action_timer("gbp.create_external_segment")
 	def _create_external_segment(self, name, nexthop, cidr, destination="0.0.0.0/0"):
 		body = {
 			"external_segment": {
@@ -495,7 +496,7 @@ class GBPScenario(base.Scenario):
 			time.sleep(1)
 		return None
 	
-	@base.atomic_action_timer("gbp.delete_external_segment")
+	@atomic.action_timer("gbp.delete_external_segment")
 	def _delete_external_segment(self, name):
 		segmentid = self._find_external_segment(name)
 		if segmentid:
@@ -505,7 +506,7 @@ class GBPScenario(base.Scenario):
 		return
 			
 	
-	@base.atomic_action_timer("gbp.show_external_segment")
+	@atomic.action_timer("gbp.show_external_segment")
 	def _show_external_segment(self, name):
 		segmentid = self_find_external_segment(name)
 		segment = self.clients("grouppolicy").show_external_segment(segmentid)
@@ -514,7 +515,7 @@ class GBPScenario(base.Scenario):
 		return segment['external_segment']['id']
 	
 	
-	@base.atomic_action_timer("gbp.create_external_policy")
+	@atomic.action_timer("gbp.create_external_policy")
 	def _create_external_policy(self, name, external_segment_name):
 		segmentid = self._find_external_segment(external_segment_name)
 		body = {
@@ -534,7 +535,7 @@ class GBPScenario(base.Scenario):
 			time.sleep(1)
 		return None
 	
-	@base.atomic_action_timer("gbp.delete_external_policy")
+	@atomic.action_timer("gbp.delete_external_policy")
 	def _delete_external_policy(self, name):
 		policyid = self._find_external_policy(name)
 		if policyid:
@@ -543,7 +544,7 @@ class GBPScenario(base.Scenario):
 		print "External segment %s not found" %(name)
 		return
 	
-	@base.atomic_action_timer("gbp.show_external_policy")
+	@atomic.action_timer("gbp.show_external_policy")
 	def _show_external_policy(self, name):
 		policyid = self._find_external_policy(name)
 		policy = self.clients("grouppolicy").show_external_policy(policyid)
@@ -551,7 +552,7 @@ class GBPScenario(base.Scenario):
 			print "External policy %s not found" %(name)
 		return policy['external_policy']['id']
 	
-	@base.atomic_action_timer("gbp.update_external_policy")
+	@atomic.action_timer("gbp.update_external_policy")
 	def _update_external_policy(self, name, consumed_policy_rulesets=None, provided_policy_rulesets=None):
 		policyid = self._find_external_policy(name)
 		consumed_dict = {}
@@ -572,12 +573,3 @@ class GBPScenario(base.Scenario):
 			}
 		}
 		self.clients("grouppolicy").update_external_policy(policyid, body)
-	
-		
-	
-	
-	
-		
-		
-	
-		
