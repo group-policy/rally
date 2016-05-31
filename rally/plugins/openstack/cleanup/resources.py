@@ -78,6 +78,9 @@ class GroupPolicyMixin(SynchronizedDeletion, base.ResourceManager):
     def id(self):
         return self.raw_resource["id"]
 
+    def name(self):
+        return self.raw_resource.get("name", "")
+
     def delete(self):
         delete_method = getattr(self._manager(), "delete_%s" % self._resource)
         delete_method(self.id())
