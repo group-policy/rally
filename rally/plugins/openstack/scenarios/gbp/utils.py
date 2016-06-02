@@ -1,16 +1,21 @@
-from rally.plugins.openstack import scenario
-from rally.task import atomic
-from rally import osclients
 import os
 import time
 
-@osclients.Clients.register("grouppolicy")
-def grouppolicy(self):
-	from gbpclient.v2_0 import client as gbpclient
-	return gbpclient.Client(username=self.endpoint.username,
-							password=self.endpoint.password,
-							tenant_name=self.endpoint.tenant_name,
-							auth_url=self.endpoint.auth_url)
+from rally.plugins.openstack import scenario
+from rally.task import atomic
+from rally import osclients
+
+
+@osclients.configure("grouppolicy", default_version="2.0", default_service_type="network")
+class GroupPolicy(osclients.OSClient):
+    def create_client(self, version=None, service_type=None):
+        from gbpclient.v2_0 import client as gbpclient
+        client = gbpclient.Client(username=self.credential.username,
+                                  password=self.credential.password,
+                                  tenant_name=self.credential.tenant_name,
+                                  auth_url=self.credential.auth_url)
+        return client
+
 
 class GBPScenario(scenario.OpenStackScenario):
 	"""
