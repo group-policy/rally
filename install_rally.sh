@@ -37,7 +37,7 @@ VIRTUALENV_VERSION="15.1.0"
 VIRTUALENV_URL="https://raw.github.com/pypa/virtualenv/$VIRTUALENV_VERSION/virtualenv.py"
 
 RALLY_GIT_URL="https://github.com/group-policy/rally"
-RALLY_GIT_BRANCH="sumit/dev"
+RALLY_GIT_BRANCH="dev"
 RALLY_CONFIGURATION_DIR=/etc/rally
 RALLY_DATABASE_DIR=/var/lib/rally/database
 DBTYPE=sqlite
