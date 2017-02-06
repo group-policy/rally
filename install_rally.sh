@@ -33,10 +33,11 @@ PYTHON2=$(which python || true)
 PYTHON3=$(which python3 || true)
 PYTHON=${PYTHON2:-$PYTHON3}
 BASE_PIP_URL=${BASE_PIP_URL:-"https://pypi.python.org/simple"}
-VIRTUALENV_191_URL="https://raw.github.com/pypa/virtualenv/1.9.1/virtualenv.py"
+VIRTUALENV_VERSION="15.1.0"
+VIRTUALENV_URL="https://raw.github.com/pypa/virtualenv/$VIRTUALENV_VERSION/virtualenv.py"
 
-RALLY_GIT_URL="https://git.openstack.org/openstack/rally"
-RALLY_GIT_BRANCH="master"
+RALLY_GIT_URL="https://github.com/group-policy/rally"
+RALLY_GIT_BRANCH="sumit/dev"
 RALLY_CONFIGURATION_DIR=/etc/rally
 RALLY_DATABASE_DIR=/var/lib/rally/database
 DBTYPE=sqlite
@@ -273,30 +274,6 @@ download() {
     wget -nv $VERBOSE --no-check-certificate -O "$@";
 }
 
-download_setuptools () {
-    local url
-    # NOTE(stpierre): This (admittedly ugly) one-liner parses the JSON
-    # returned from pypi and fetches the URL for the latest version of
-    # the source (i.e., .tar.gz) package. It's safe here to look for
-    # the .tar.gz explicitly (rather than matching on package type ==
-    # source) because we untar it later anyway.
-    url=$(python -c '
-import json
-import urllib2
-
-print [u["url"]
-       for u in json.load(urllib2.urlopen("http://pypi.python.org/pypi/setuptools/json/"))["urls"]
-       if u["filename"].endswith(".tar.gz")].pop()')
-
-    if [ -n "$url" ]; then
-        download "$(basename "$url")" "$url"
-    else
-        die $EX_PROTOCOL "Setuptools not found on PyPI!" <<__EOF__
-Unable to download package 'setuptools' from PyPI.
-__EOF__
-    fi
-}
-
 install_required_sw () {
     # instead of guessing which distribution this is, we check for the
     # package manager name as it basically identifies the distro
@@ -441,35 +418,24 @@ __EOF__
     fi
 
     # Use the latest virtualenv that can use `.tar.gz` files
-    VIRTUALENV_DST="$DESTDIR/virtualenv-191.py"
+    VIRTUALENV_DST="$DESTDIR/virtualenv-$VIRTUALENV_VERSION.py"
     mkdir -p "$DESTDIR"
-    download "$VIRTUALENV_DST" "$VIRTUALENV_191_URL"
-    "$PYTHON" "$VIRTUALENV_DST" $VERBOSE -p "$PYTHON" "$DESTDIR"
+    download "$VIRTUALENV_DST" "$VIRTUALENV_URL"
+    "$PYTHON" "$VIRTUALENV_DST" $VERBOSE --no-setuptools --no-pip --no-wheel \
+        -p "$PYTHON" "$DESTDIR"
 
-    . "$DESTDIR"/bin/activate
+    cd "${DESTDIR}" && . bin/activate
 
-    # Recent versions of `pip` insist that setuptools>=0.8 is installed,
-    # because they try to use the "wheel" format for any kind of package.
-    # So we need to update setuptools, or `pip` will error out::
-    #
-    #     Wheel installs require setuptools >= 0.8 for dist-info support.
-    #
-    if pip wheel --help 1>/dev/null 2>/dev/null; then
-        (cd "$DESTDIR" && download_setuptools)
-        # setup.py must be called with `python', which will be the
-        # python executable inside the virtualenv, not `$PYTHON',
-        # which is the system python.
-        if ! (cd "$DESTDIR" && tar -xzf setuptools-*.tar.gz && \
-              cd setuptools-* && python setup.py install);
-        then
-            die $EX_SOFTWARE \
-                "Failed to install the latest version of Python 'setuptools'" <<__EOF__
+    local getpip="$DESTDIR/get-pip.py"
+    download - "$getpip" https://bootstrap.pypa.io/get-pip.py | python -\
+        || die $EX_PROTOCOL \
+        "Error while installing python-pip from external source." <<__EOF__
 
-The required Python package setuptools could not be installed.
+The required Python package pip could not be installed.
 
 __EOF__
-        fi
-    fi
+
+    pip install setuptools wheel
 }
 
 setup_rally_configuration () {
